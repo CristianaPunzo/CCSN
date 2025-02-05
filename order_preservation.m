@@ -49,7 +49,7 @@ colors = lines(n);
 
 figure;
 theta = linspace(0, 2*pi, 100);
-plot(cos(theta), sin(theta), 'k', 'LineWidth', 1.5); % Circonferenza
+plot(cos(theta), sin(theta), 'k', 'LineWidth', 1.5);
 hold on;
 
 x_init = cos(q(:,1));
@@ -57,16 +57,13 @@ y_init = sin(q(:,1));
 
 for j = 1:n
     scatter(x_init(j), y_init(j), 100, colors(j,:), 'filled');
-    text(1.1 * x_init(j), 1.1 * y_init(j), num2str(j), 'FontSize', 12, ...
-        'FontWeight', 'bold', 'HorizontalAlignment', 'center', 'Color', colors(j,:));
+    text(1.1 * x_init(j), 1.1 * y_init(j), num2str(j), 'FontSize', 12, 'FontWeight', 'bold', 'HorizontalAlignment', 'center', 'Color', colors(j,:), 'Interpreter', 'latex');
 end
 
 axis equal;
 xlim([-1.2 1.2]); ylim([-1.2 1.2]);
-title('Posizione iniziale');
+title('\textbf{Initial Position}', 'Interpreter', 'latex');
 hold off;
-
-% Salva la figura in SVG
 saveas(gcf, 'posizione_iniziale_wp.svg');
 
 figure;
@@ -128,8 +125,7 @@ for i = 1:T-1
     d_underhat(:,:,i+1) = max(d_bar(:,:,i+1) - delta_bar, d_underhat(:,:,i) + u(:,i)' - u(:,i));
     d_hat(:,:,i+1) = min(d_bar(:,:,i+1) + delta_bar, d_hat(:,:,i) + u(:,i)' - u(:,i));
 end
-
-% Calcolo della funzione coverage T per tutti gli istanti di tempo
+%% ---- Calcolo della funzione coverage T per tutti gli istanti di tempo ----
 T_values_time = zeros(1, T);
 
 for t = 1:T
@@ -147,9 +143,9 @@ plot(1:T, T_values_time - T_star, 'b-', 'LineWidth', 1.5);
 yline(0, '--k', 'T^*', 'FontWeight', 'bold');
 
 % Miglioramenti estetici
-xlabel('Tempo (step)', 'FontWeight', 'bold');
-ylabel('Coverage cost T - T^*',  'FontWeight', 'bold');
-title('Coverage cost T nel tempo', 'FontWeight', 'bold');
+xlabel('\textbf{Time (steps)}', 'FontSize', 9, 'FontWeight', 'bold', 'Interpreter', 'latex');
+ylabel('$T - T^*$',  'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
+title('\textbf{Coverage Cost Function}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 
 grid on; % Abilita la griglia principale
 grid minor; % Aggiunge la griglia secondaria
@@ -158,6 +154,8 @@ grid minor; % Aggiunge la griglia secondaria
 ylim([min(T_values_time - T_star) - 0.01, max(T_values_time - T_star) + 0.01]);
 xlim([0, T]);
 saveas(gcf, 'cost_function_wp.svg');
+
+%% ---- Posizione finale ----
 
 figure;
 plot(cos(theta), sin(theta), 'k', 'LineWidth', 1.5); % Circonferenza
@@ -174,11 +172,13 @@ end
 
 axis equal;
 xlim([-1.2 1.2]); ylim([-1.2 1.2]);
-title('Posizione finale');
+title('\textbf{Final Position}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 hold off;
 
 % Salva la figura in SVG
 saveas(gcf, 'posizione_finale_wp.svg');
+
+
 %% ---- Grafico delle posizioni nel tempo ----
 figure;
 hold on;
@@ -189,24 +189,22 @@ for j = 1:n
     text(T, q(j, end), sprintf('q_{%d}', j), 'FontSize', 12, 'FontWeight', 'bold', ...
         'Color', colors(j,:), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
 end
-xlabel('Tempo (step)', 'FontSize', 14, 'FontWeight', 'bold');
-ylabel('Posizione q', 'FontSize', 14, 'FontWeight', 'bold');
-title('Posizioni nel tempo', 'FontSize', 16, 'FontWeight', 'bold');
+xlabel('\textbf{Time (steps)}', 'FontSize', 9, 'FontWeight', 'bold', 'Interpreter', 'latex');
+ylabel('$q_i$', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
+title('\textbf{Position in time}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 grid on;
 hold off;
-saveas(gcf, 'posizione_wp.svg');
+saveas(gcf, 'position_wp.svg');
+
+
 %% ---- Grafico del controllo nel tempo ----
 figure;
-hold on;
-for j = 1:n
-    plot(1:T, u(j,:), 'Color', colors(j,:), 'LineWidth', 1.5, 'DisplayName', sprintf('u_{%d}', j));
-end
-xlabel('Tempo (step)', 'FontSize', 14, 'FontWeight', 'bold');
-ylabel('Control Input u', 'FontSize', 14, 'FontWeight', 'bold');
-title('Control input nel tempo', 'FontSize', 16, 'FontWeight', 'bold');
+plot(1:T, u', 'LineWidth', 1.5);
+xlabel('\textbf{Time (steps)}', 'FontSize', 9, 'FontWeight', 'bold', 'Interpreter', 'latex');
+ylabel('$u_i$', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
+title('\textbf{Control Input}', 'FontSize', 14, 'Interpreter', 'latex');
 grid on;
-
-legend('show', 'Location', 'best', 'FontSize', 12); % Aggiunge la legenda
+legend(arrayfun(@(x) sprintf('$u_{%d}$', x), 1:n, 'UniformOutput', false), 'Interpreter', 'latex');
 hold off;
 saveas(gcf, 'control_input_wp.svg');
 
