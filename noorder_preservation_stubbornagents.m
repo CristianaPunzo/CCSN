@@ -2,29 +2,23 @@ clear
 close all
 clc
 
-rng(6)
+rng(8)
 
-n = 5;
+n = 6;
 T = 100;
 
 q = zeros(n,T);
 q(:,1) = sort(rand(n,1)*2*pi);
 u = zeros(n,T);
-lambda = [2.4, 2.8, 3, 4.2, 3.6]';
-delta = [1.2, 4, 1.6, 3, 1.8]';
+lambda = [0.01, 2.4, 2.8, 0.01, 4.2, 3.6]';
+delta = [1, 1.2, 4, 1.6, 3, 1.8]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-%eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
-%eta = [0.0447, 0.0408, 0.0331, 0.0253, 0.0278]'; %ancora peggio, cambiati
-%tutti
-%eta = [0.005,0.0408,0.002,0.0253,0.003]'; %funziona uno schifo, cambiati due
-%eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
+eta = [0, 5, 6, 2, 4, 3]'*0.001; %valori nominali
 
-omega = [1.5, 12, 8, 0.5, 21]';
-phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
-
-K = 0.1/lambda(1);
+omega = [5, 1.5, 12, 8, 0.5, 21]';
+phi=[1/2, 1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
 
 for i = 1:n
     for j = 1:n
@@ -41,7 +35,9 @@ for k = 1:T
     end
 end
 
+
 d = zeros(n,n,T);
+
 d(:,:,1) = angular_distance(q(:,1),q(:,1)') + e(:,:,1);
 
 d_bar = zeros(n,n,T);
@@ -86,8 +82,12 @@ for i = 1:T-1
     u_tilde = eta .* ((lambda_shift_right + lambda) .* d_tilde_forward + ...
         (lambda + lambda_shift_left) .* d_tilde_backward);
     u(:,i) = lambda .* sat(u_tilde);
+    
+    u(1,i) = lambda(1);
+    u(4,i) = lambda(4);
 
     q(:,i+1) = q(:,i) + u(:,i);
+
     % --- Visualizzazione aggiornata ---
     clf;
     
@@ -219,8 +219,8 @@ function d = angular_distance(x,y)
 d_ccw = mod(y - x, 2*pi);
 d_cw = d_ccw - 2*pi;
 
-id_forw = circshift(eye(5),1,2);
-id_backw = circshift(eye(5),-1,2);
+id_forw = circshift(eye(6),1,2);
+id_backw = circshift(eye(6),-1,2);
 
  d = id_forw .* d_ccw + id_backw .* d_cw;
 

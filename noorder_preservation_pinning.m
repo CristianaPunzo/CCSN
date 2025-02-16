@@ -15,15 +15,15 @@ delta = [1.2, 4, 1.6, 3, 1.8]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-%eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
-%eta = [0.0447, 0.0408, 0.0331, 0.0253, 0.0278]'; %ancora peggio, cambiati
-%tutti
-%eta = [0.005,0.0408,0.002,0.0253,0.003]'; %funziona uno schifo, cambiati due
-%eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
+eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
 
 omega = [1.5, 12, 8, 0.5, 21]';
 phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
 
+% pinner
+qs = zeros(1,T);
+qs(1) = q(1,1);
+us = 0.01;
 K = 0.1/lambda(1);
 
 for i = 1:n
@@ -86,8 +86,11 @@ for i = 1:T-1
     u_tilde = eta .* ((lambda_shift_right + lambda) .* d_tilde_forward + ...
         (lambda + lambda_shift_left) .* d_tilde_backward);
     u(:,i) = lambda .* sat(u_tilde);
+    
+    u(1,i) = lambda(1) .* sat(u_tilde(1) - K*(q(1,i) - qs(i)));
 
     q(:,i+1) = q(:,i) + u(:,i);
+    qs(i+1) = qs(i) + us;
     % --- Visualizzazione aggiornata ---
     clf;
     
