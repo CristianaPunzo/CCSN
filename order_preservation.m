@@ -5,7 +5,7 @@ clc
 rng(6)
 
 n = 5;
-T = 100;
+T = 200;
 
 q = zeros(n,T);
 q(:,1) = sort(rand(n,1)*2*pi);
@@ -15,7 +15,14 @@ delta = [0.32, 0.24, 0.45, 0.18, 0.36]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-eta = [0.010, 0.007, 0.008, 0.006, 0.009]';
+%eta = [0.010, 0.007, 0.008, 0.006, 0.009]'; %valori nominali
+%eta = [0.010, 0.007, 0.0331, 0.006, 0.009]'; %cambiato 1, funziona
+%eta = [0.010, 0.007, 0.0331,0.0253,0.0278]'; %cambiati gli ultimi 3, la
+%coverage cost function converge verso il valore ottenuto con i valori
+%nominali ma non ha un andamento perfettamente smooth
+eta = [0.0365,0.0406,0.0331,0.0253,0.0278]'; %penso che l'azione di 
+%controllo debba fare un bel po' di aggiustamenti però nonostante questo 
+%converge
 omega = [1.5, 12, 8, 0.5, 21]';
 phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
 

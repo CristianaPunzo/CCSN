@@ -101,17 +101,28 @@ plot(x, coverage_mean, 'b-', 'LineWidth', 2, 'DisplayName', 'Media');
 yline(T_star, '--r', 'T^*', 'FontWeight', 'bold', 'DisplayName', 'T^*');
 
 % Miglioramenti estetici
-xlabel('Tempo (step)', 'FontSize', 14, 'FontWeight', 'bold');
-ylabel('Coverage cost T', 'FontSize', 14, 'FontWeight', 'bold');
-title('Coverage cost medio su 100 simulazioni', 'FontSize', 16, 'FontWeight', 'bold');
-legend('show', 'Location', 'best');
+xlabel('\textbf{Time (steps)}', 'FontSize', 9, 'FontWeight', 'bold', 'Interpreter', 'latex');
+ylabel('$T$',  'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
+title('\textbf{Coverage Cost Function over 100 simulations}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
+legend({'Mean', 'T'}, 'Location', 'best');
+
 grid on;
 hold off;
 
 % Salva la figura
-saveas(gcf, 'coverage_cost_mean_std.svg');
+saveas(gcf, 'coverage_cost_mean_std_wop.svg');
 
 fprintf('Simulazioni completate! Grafico della coverage cost salvato.\n');
+
+% Determina gli ultimi valori da considerare come regime
+final_portion = round(0.1 * T); % Ultimo 10% dei passi temporali
+steady_state_mean = mean(coverage_mean(end-final_portion+1:end));
+steady_state_std = mean(coverage_std(end-final_portion+1:end));
+
+% Stampa i risultati
+fprintf('Valore a regime della media: %.6f\n', steady_state_mean);
+fprintf('Valore a regime della deviazione standard: %.6f\n', steady_state_std);
+
 
 %% --- Funzioni di supporto ---
 function d = angular_distance(x,y)
