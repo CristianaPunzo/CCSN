@@ -15,10 +15,15 @@ delta = [0.32, 0.24, 0.45, 0.18, 0.36]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-%eta = [0.010, 0.007, 0.008, 0.006, 0.009]'; %valori nominali
-eta = [0.0365,0.0406,0.0331,0.0253,0.0278]'; 
+eta = [0.010, 0.007, 0.008, 0.006, 0.009]'; %valori nominali
 omega = [1.5, 12, 8, 0.5, 21]';
 phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
+
+% pinner
+qs = zeros(1,T);
+qs(1) = q(1,1);
+us = 0.01;
+K = 1.5/lambda(1);
 
 for i = 1:n
     for j = 1:n
@@ -65,7 +70,7 @@ axis equal;
 xlim([-1.2 1.2]); ylim([-1.2 1.2]);
 title('\textbf{Initial Position}', 'Interpreter', 'latex');
 hold off;
-saveas(gcf, fullfile('immagini', 'posizione_iniziale_wp_eta.svg'));
+saveas(gcf, fullfile('immagini', 'posizione_iniziale_pinning_wp.svg'));
 
 figure;
 for i = 1:T-1
@@ -83,9 +88,10 @@ for i = 1:T-1
     u_tilde = eta .* ((lambda_shift_right + lambda) .* d_underhat_forward + ...
         (lambda + lambda_shift_left) .* d_underhat_backward);
     u(:,i) = lambda .* sat(sigma(u_tilde));
+    u(1,i) = lambda(1) .* sat(u_tilde(1) - K*(q(1,i) - qs(i)));
 
     q(:,i+1) = q(:,i) + u(:,i);
-
+    qs(i+1) = qs(i) + us;
     % --- Visualizzazione aggiornata ---
     clf;
     
@@ -154,7 +160,7 @@ grid minor; % Aggiunge la griglia secondaria
 % Imposta limiti sugli assi per una visualizzazione più chiara
 ylim([min(T_values_time - T_star) - 0.01, max(T_values_time - T_star) + 0.01]);
 xlim([0, T]);
-saveas(gcf, fullfile('immagini', 'cost_function_wp_eta.svg'));
+saveas(gcf, fullfile('immagini', 'cost_function_pinning_wp.svg'));
 
 %% ---- Posizione finale ----
 
@@ -177,7 +183,7 @@ title('\textbf{Final Position}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpre
 hold off;
 
 % Salva la figura in SVG
-saveas(gcf, fullfile('immagini', 'posizione_finale_wp_eta.svg'));
+saveas(gcf, fullfile('immagini', 'posizione_finale_pinning_wp.svg'));
 
 
 %% ---- Grafico delle posizioni nel tempo ----
@@ -187,15 +193,25 @@ for j = 1:n
     plot(1:T, q(j,:), 'Color', colors(j,:), 'LineWidth', 1.5); % Traccia la traiettoria
     
     % Posiziona il nome q_j vicino all'ultimo valore della curva
-    text(T, q(j, end), sprintf('q_{%d}', j), 'FontSize', 12, 'FontWeight', 'bold', ...
-        'Color', colors(j,:), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+     text(T, q(j, end), sprintf('q_{%d}', j), 'FontSize', 12, 'FontWeight', 'bold', ...
+    'Color', colors(j,:), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+
 end
+
+% Aggiunta della traiettoria di qs con linea tratteggiata e colore differente
+plot(1:T, qs, '--', 'LineWidth', 2, 'Color', [0 0.5 0]); % Verde scuro
+
+% Etichetta per qs
+text(T, qs(end), 'q_s', 'FontSize', 12, 'FontWeight', 'bold', ...
+    'Color', [0 0.5 0], 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+
+
 xlabel('\textbf{Time (steps)}', 'FontSize', 9, 'FontWeight', 'bold', 'Interpreter', 'latex');
 ylabel('$q_i$', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 title('\textbf{Position in time}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 grid on;
 hold off;
-saveas(gcf, fullfile('immagini', 'position_wp_eta.svg'));
+saveas(gcf, fullfile('immagini', 'position_pinning_wp.svg'));
 
 
 %% ---- Grafico del controllo nel tempo ----
@@ -207,7 +223,7 @@ title('\textbf{Control Input}', 'FontSize', 14, 'Interpreter', 'latex');
 grid on;
 legend(arrayfun(@(x) sprintf('$u_{%d}$', x), 1:n, 'UniformOutput', false), 'Interpreter', 'latex');
 hold off;
-saveas(gcf, fullfile('immagini', 'control_input_wp_eta.svg'));
+saveas(gcf, fullfile('immagini', 'control_input_pinning_wp.svg'));
 
 %% ---- Salvataggio dati ----
 % Creare la cartella se non esiste
@@ -216,7 +232,7 @@ if ~exist('dati', 'dir')
 end
 
 % Salva i valori della funzione di costo e dell'input di controllo
-save(fullfile('dati', 'risultati_eta_wp.mat'), 'T_values_time', 'T_star', 'u');
+save(fullfile('dati', 'risultati_pinning_wp.mat'), 'T_values_time', 'T_star', 'u');
 
 %% ---- Funzioni ausiliarie ----
 

@@ -4,32 +4,20 @@ clc
 
 rng(6)
 
-n = 5;
-T = 100;
+n = 6;
+T = 200;
 
 q = zeros(n,T);
 q(:,1) = sort(rand(n,1)*2*pi);
 u = zeros(n,T);
-lambda = [2.4, 2.8, 3, 4.2, 3.6]';
-delta = [1.2, 4, 1.6, 3, 1.8]';
+lambda = [0.01, 2.4, 2.8, 0.01, 4.2, 3.6]';
+delta = [0.1, 0.32, 0.24, 0.45, 0.18, 0.36]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
-%eta = [0.0447, 0.0408, 0.0331, 0.0253, 0.0278]'; %ancora peggio, cambiati
-%tutti
-%eta = [0.005,0.0408,0.002,0.0253,0.003]'; %funziona uno schifo, cambiati due
-%eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
-
-omega = [1.5, 12, 8, 0.5, 21]';
-phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
-
-% pinner
-qs = zeros(1,T);
-qs(1) = q(1,1);
-us = 0.01;
-
-K = 0.1/lambda(1);
+eta = [0, 0.010, 0.007, 0.008, 0.006, 0.009]'; %valori nominali
+omega = [5, 1.5, 12, 8, 0.5, 21]';
+phi=[1/2, 1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
 
 for i = 1:n
     for j = 1:n
@@ -76,7 +64,7 @@ axis equal;
 xlim([-1.2 1.2]); ylim([-1.2 1.2]);
 title('\textbf{Initial Position}', 'Interpreter', 'latex');
 hold off;
-saveas(gcf, 'posizione_iniziale_wop.svg');
+saveas(gcf, fullfile('immagini', 'posizione_iniziale_stubborn_wp.svg'));
 
 figure;
 for i = 1:T-1
@@ -85,17 +73,20 @@ for i = 1:T-1
     lambda_shift_left = circshift(lambda, -1);  
     lambda_shift_right = circshift(lambda, 1);  
 
-    d_tilde_forward = diag(circshift(d_tilde, -1, 2));  
-    d_tilde_backward = diag(circshift(d_tilde, 1, 2));  
+    d_underhat_i = d_underhat(:,:,i);
 
-    u_tilde = eta .* ((lambda_shift_right + lambda) .* d_tilde_forward + ...
-        (lambda + lambda_shift_left) .* d_tilde_backward);
-    u(:,i) = lambda .* sat(u_tilde);
-    u(1,i) = lambda(1) .* sat(u_tilde(1) - K*(q(1,i) - qs(i)));
-    %u(1,i) = lambda(1) .* sat(u_tilde(1) - K*angular_distance(q(1,i),qs(i)));
+    % Calcola d_underhat_forward e d_underhat_backward
+    d_underhat_forward = diag(circshift(d_underhat_i, -1, 2)); 
+    d_underhat_backward = diag(circshift(d_underhat_i, 1, 2)); 
+
+    u_tilde = eta .* ((lambda_shift_right + lambda) .* d_underhat_forward + ...
+        (lambda + lambda_shift_left) .* d_underhat_backward);
+    u(:,i) = lambda .* sat(sigma(u_tilde));
+    
+    u(1,i) = lambda(1);
+    u(4,i) = lambda(4);
 
     q(:,i+1) = q(:,i) + u(:,i);
-    qs(i+1) = qs(i) + us;
 
     % --- Visualizzazione aggiornata ---
     clf;
@@ -137,7 +128,6 @@ for i = 1:T-1
     d_underhat(:,:,i+1) = max(d_bar(:,:,i+1) - delta_bar, d_underhat(:,:,i) + u(:,i)' - u(:,i));
     d_hat(:,:,i+1) = min(d_bar(:,:,i+1) + delta_bar, d_hat(:,:,i) + u(:,i)' - u(:,i));
 end
-
 %% ---- Calcolo della funzione coverage T per tutti gli istanti di tempo ----
 T_values_time = zeros(1, T);
 
@@ -166,7 +156,7 @@ grid minor; % Aggiunge la griglia secondaria
 % Imposta limiti sugli assi per una visualizzazione più chiara
 ylim([min(T_values_time - T_star) - 0.01, max(T_values_time - T_star) + 0.01]);
 xlim([0, T]);
-saveas(gcf, 'cost_function_wop.svg');
+saveas(gcf, fullfile('immagini', 'cost_function_stubborn_wp.svg'));
 
 %% ---- Posizione finale ----
 
@@ -189,7 +179,7 @@ title('\textbf{Final Position}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpre
 hold off;
 
 % Salva la figura in SVG
-saveas(gcf, 'posizione_finale_wop.svg');
+saveas(gcf, fullfile('immagini', 'posizione_finale_stubborn_wp.svg'));
 
 
 %% ---- Grafico delle posizioni nel tempo ----
@@ -207,7 +197,7 @@ ylabel('$q_i$', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 title('\textbf{Position in time}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 grid on;
 hold off;
-saveas(gcf, 'position_wop.svg');
+saveas(gcf, fullfile('immagini', 'position_stubborn_wp.svg'));
 
 
 %% ---- Grafico del controllo nel tempo ----
@@ -219,17 +209,26 @@ title('\textbf{Control Input}', 'FontSize', 14, 'Interpreter', 'latex');
 grid on;
 legend(arrayfun(@(x) sprintf('$u_{%d}$', x), 1:n, 'UniformOutput', false), 'Interpreter', 'latex');
 hold off;
-saveas(gcf, 'control_input_wop.svg');
+saveas(gcf, fullfile('immagini', 'control_input_stubborn_wp.svg'));
 
+%% ---- Salvataggio dati ----
+% Creare la cartella se non esiste
+if ~exist('dati', 'dir')
+    mkdir('dati');
+end
 
+% Salva i valori della funzione di costo e dell'input di controllo
+save(fullfile('dati', 'risultati_stubborn_wp.mat'), 'T_values_time', 'T_star', 'u');
+
+%% ---- Funzioni ausiliarie ----
 
 function d = angular_distance(x,y)
 
 d_ccw = mod(y - x, 2*pi);
 d_cw = d_ccw - 2*pi;
 
-id_forw = circshift(eye(5),1,2);
-id_backw = circshift(eye(5),-1,2);
+id_forw = circshift(eye(6),1,2);
+id_backw = circshift(eye(6),-1,2);
 
  d = id_forw .* d_ccw + id_backw .* d_cw;
 
@@ -253,3 +252,6 @@ function y = sat(u)
 y = sign(u).*min(1,abs(u));
 end
 
+function s = sigma(u)
+    s = max(u,0);
+end

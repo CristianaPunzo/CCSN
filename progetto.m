@@ -16,10 +16,7 @@ d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
 %eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
-%eta = [0.0447, 0.0408, 0.0331, 0.0253, 0.0278]'; %ancora peggio, cambiati
-%tutti
-%eta = [0.005,0.0408,0.002,0.0253,0.003]'; %funziona uno schifo, cambiati due
-%eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
+eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
 
 omega = [1.5, 12, 8, 0.5, 21]';
 phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
@@ -71,7 +68,7 @@ axis equal;
 xlim([-1.2 1.2]); ylim([-1.2 1.2]);
 title('\textbf{Initial Position}', 'Interpreter', 'latex');
 hold off;
-saveas(gcf, 'posizione_iniziale_wop.svg');
+saveas(gcf, fullfile('immagini', 'posizione_iniziale_wop_eta.svg'));
 
 figure;
 for i = 1:T-1
@@ -157,7 +154,7 @@ grid minor; % Aggiunge la griglia secondaria
 % Imposta limiti sugli assi per una visualizzazione più chiara
 ylim([min(T_values_time - T_star) - 0.01, max(T_values_time - T_star) + 0.01]);
 xlim([0, T]);
-saveas(gcf, 'cost_function_wop.svg');
+saveas(gcf, fullfile('immagini', 'cost_function_wop_eta.svg'));
 
 %% ---- Posizione finale ----
 
@@ -180,7 +177,7 @@ title('\textbf{Final Position}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpre
 hold off;
 
 % Salva la figura in SVG
-saveas(gcf, 'posizione_finale_wop.svg');
+saveas(gcf, fullfile('immagini', 'posizione_finale_wop_eta.svg'));
 
 
 %% ---- Grafico delle posizioni nel tempo ----
@@ -198,7 +195,7 @@ ylabel('$q_i$', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 title('\textbf{Position in time}', 'FontSize', 14, 'FontWeight', 'bold', 'Interpreter', 'latex');
 grid on;
 hold off;
-saveas(gcf, 'position_wop.svg');
+saveas(gcf, fullfile('immagini', 'position_wop_eta.svg'));
 
 
 %% ---- Grafico del controllo nel tempo ----
@@ -210,9 +207,19 @@ title('\textbf{Control Input}', 'FontSize', 14, 'Interpreter', 'latex');
 grid on;
 legend(arrayfun(@(x) sprintf('$u_{%d}$', x), 1:n, 'UniformOutput', false), 'Interpreter', 'latex');
 hold off;
-saveas(gcf, 'control_input_wop.svg');
+saveas(gcf, fullfile('immagini', 'control_input_wop_eta.svg'));
+
+%% ---- Salvataggio dati ----
+% Creare la cartella se non esiste
+if ~exist('dati', 'dir')
+    mkdir('dati');
+end
+
+% Salva i valori della funzione di costo e dell'input di controllo
+save(fullfile('dati', 'risultati_eta.mat'), 'T_values_time', 'T_star', 'u');
 
 
+%% ---- Funzioni ausiliarie ----
 
 function d = angular_distance(x,y)
 
