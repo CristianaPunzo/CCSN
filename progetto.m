@@ -15,8 +15,8 @@ delta = [1.2, 4, 1.6, 3, 1.8]';
 d_underhat = zeros(n,n,T);
 d_hat = zeros(n,n,T);
 delta_bar = zeros(n, n);
-%eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
-eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
+eta = [5, 6, 2, 4, 3]'*0.001; %valori nominali
+%eta = [0.005,0.0408,0.002,0.004,0.003]'; %funziona uno schifo, cambiato 1
 
 omega = [1.5, 12, 8, 0.5, 21]';
 phi=[1/6, 1/3, 1/2, 1/4, 1/5]'*pi;
@@ -49,7 +49,14 @@ d_underhat(:,:,1) = d_bar(:,:,1) - delta_bar;
 d_hat(:,:,1) = d_bar(:,:,1) + delta_bar;
 
 % Genera una palette di colori distinti per ogni agente
+% Genera una palette di colori distinti per ogni agente
 colors = lines(n);  
+
+% Inizializza il VideoWriter per salvare l'animazione
+video_filename = fullfile('immagini', 'nominale_wop.mp4');
+v = VideoWriter(video_filename);
+v.FrameRate = 10;  % Imposta il frame rate (puoi modificarlo a piacimento)
+open(v);
 
 figure;
 theta = linspace(0, 2*pi, 100);
@@ -85,7 +92,7 @@ for i = 1:T-1
     u(:,i) = lambda .* sat(u_tilde);
 
     q(:,i+1) = q(:,i) + u(:,i);
-    % --- Visualizzazione aggiornata ---
+    % --- Visualizzazione aggiornata ---    
     clf;
     
     % Disegna la circonferenza unitaria
@@ -119,12 +126,20 @@ for i = 1:T-1
     title(sprintf('Step %d', i));
     drawnow;
 
+    % Cattura e scrive il frame nel video
+    frame = getframe(gcf);
+    writeVideo(v, frame);
+
     d(:,:,i+1) = angular_distance(q(:,i+1),q(:,i+1)') + e(:,:,i+1);
     d_bar(:,:,i+1) = (d(:,:,i+1)-d(:,:,i+1)')/2;
 
     d_underhat(:,:,i+1) = max(d_bar(:,:,i+1) - delta_bar, d_underhat(:,:,i) + u(:,i)' - u(:,i));
     d_hat(:,:,i+1) = min(d_bar(:,:,i+1) + delta_bar, d_hat(:,:,i) + u(:,i)' - u(:,i));
 end
+
+% Chiudi il VideoWriter
+close(v);
+
 
 %% ---- Calcolo della funzione coverage T per tutti gli istanti di tempo ----
 T_values_time = zeros(1, T);
@@ -185,7 +200,7 @@ figure;
 hold on;
 for j = 1:n
     plot(1:T, q(j,:), 'Color', colors(j,:), 'LineWidth', 1.5); % Traccia la traiettoria
-    
+
     % Posiziona il nome q_j vicino all'ultimo valore della curva
     text(T, q(j, end), sprintf('q_{%d}', j), 'FontSize', 12, 'FontWeight', 'bold', ...
         'Color', colors(j,:), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
